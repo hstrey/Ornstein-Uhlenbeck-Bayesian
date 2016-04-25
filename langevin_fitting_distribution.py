@@ -13,14 +13,14 @@ def next_point(x,y):
 k,gamma,D = 1.0,1.0,1.0
 delta_t=0.01
 ampl = np.sqrt(2*D*delta_t)
-N=500
+N=1000
 M=10000
 t_list=[]
 A_list=[]
 mean_list=[]
 std_list=[]
 mod = ExponentialModel()
-
+acf_avg=np.zeros(N)
 for i in range(M):
     # random force
     w=np.random.normal(0,1,N)
@@ -30,6 +30,7 @@ for i in range(M):
     autocorr = signal.fftconvolve(x, x[::-1], mode='full')
     n=len(autocorr)
     autocorr=autocorr[int((n-1)/2):]*2.0/(n+1)
+    acf_avg=acf_avg+autocorr
     y = autocorr[:200]
     t = np.arange(200)
 
@@ -41,6 +42,18 @@ for i in range(M):
     mean_list.append(x.mean())
     std_list.append(x.std())
     print('mean: ',x.mean(),'std: ',x.std(),'amplitude: ',out.values['amplitude'],'decay: ',out.values['decay'])
+
+acf_avg=acf_avg/M
+y = acf_avg[:500]
+t = np.arange(500)
+
+pars = mod.guess(y, x=t)
+out  = mod.fit(y, pars, x=t)
+print(out.fit_report(min_correl=0.25))
+
+plt.figure()
+plt.plot(t,y,"o")
+plt.plot(t,out.best_fit)
 
 t_list=np.array(t_list)
 A_list=np.array(A_list)
