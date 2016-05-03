@@ -1,3 +1,12 @@
+# here we simulate a brownian particle in a harmonic potential
+# the question is: if you only have access to a short time sequence
+# how accurately can you say something about the parameters of the system
+# Ultimately, we would like to compare Bayesian methods and standard
+# approaches, such as the analysis of correlation functions
+#
+# it looks that calculating correlation functions does not give correct amplitudes
+# decay times when the observed time sequence is shorter than a few relaxation times
+#
 import numpy as np
 import matplotlib.pyplot as plt, seaborn as sns
 import lmfit as lm
@@ -57,9 +66,9 @@ for i in range(M):
     print('mean: ',x.mean(),'std: ',x.std(),'amplitude: ',out.values['amplitude'],'decay: ',out.values['decay'])
 
 acf_avg=acf_avg/M
-acf_std=np.sqrt((acf_std-acf_avg**2)/M)
+acf_stderr=np.sqrt((acf_std-acf_avg**2)/M/M)
 y = acf_avg[:N]
-dy=acf_std[:N]
+dy=acf_stderr[:N]
 t = np.arange(N)
 
 pars = mod.guess(y, x=t)
@@ -69,6 +78,11 @@ print(out.fit_report(min_correl=0.25))
 plt.figure()
 plt.errorbar(t,y,yerr=dy,fmt="ob")
 plt.plot(t,out.best_fit)
+plt.title('acf')
+
+plt.figure()
+plt.plot(t,dy)
+plt.title('acf stddev')
 
 t_list=np.array(t_list)
 A_list=np.array(A_list)
@@ -81,10 +95,38 @@ A_list_pos=A_list[np.logical_and(t_list>=0,t_list<4000)]
 mean_list_pos=mean_list[np.logical_and(t_list>=0,t_list<4000)]
 std_list_pos=std_list[np.logical_and(t_list>=0,t_list<4000)]
 
+# careful, I am overwriting gamma
+from scipy.stats import gamma
+
+mean_t=t_list_pos.mean()
+std_t=t_list_pos.std()
+print('tau mean: ',mean_t,'std: ',std_t)
+scale_t=std_t**2/mean_t
+alpha_t=mean_t/scale_t
+print('tau alpha: ',alpha_t,'scale: ',scale_t)
+
+xgt=np.linspace(0,t_list_pos.max(),200)
+g_tau=gamma.pdf(xgt,alpha_t,scale=scale_t)
+
+mean_A=A_list_pos.mean()
+std_A=A_list_pos.std()
+print('ampl mean: ',mean_A,'std: ',std_A)
+scale_A=std_A**2/mean_A
+alpha_A=mean_A/scale_A
+print('ampl alpha: ',alpha_A,'scale: ',scale_A)
+
+xgA=np.linspace(0,A_list_pos.max(),200)
+g_A=gamma.pdf(xgA,alpha_A,scale=scale_A)
+
 plt.figure()
+plt.title('tau histogramm')
 plt.hist(t_list_pos,100,normed=1)
+plt.plot(xgt,g_tau)
+
 plt.figure()
+plt.title('amplitude histogramm')
 plt.hist(A_list_pos,100,normed=1)
+plt.plot(xgA,g_A)
 plt.show()
 
 datadict={}
@@ -93,4 +135,10 @@ datadict['A_list']=A_list
 datadict['mean_list']=mean_list
 datadict['std_list']=std_list
 df=pd.DataFrame(datadict)
-df.to_csv('500.csv')
+df.to_csv('5000.csv')
+
+acf_dict={}
+acf_dict['acf']=acf_avg
+acf_dict['acf_stderr']=acf_stderr
+df=pd.DataFrame(acf_dict)
+df.to_csv('acf_5000.csv')
