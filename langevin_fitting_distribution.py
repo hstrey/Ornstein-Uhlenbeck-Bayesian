@@ -95,6 +95,18 @@ A_list_pos=A_list[np.logical_and(t_list>=0,t_list<4000)]
 mean_list_pos=mean_list[np.logical_and(t_list>=0,t_list<4000)]
 std_list_pos=std_list[np.logical_and(t_list>=0,t_list<4000)]
 
+# calculate diffusion coefficient from tau and amplitude
+D=A_list_pos/t_list_pos/delta_t
+mean_D=D.mean()
+std_D=D.std()
+print('D mean: ',mean_D,'std: ',std_D)
+scale_D=std_D**2/mean_D
+alpha_D=mean_D/scale_D
+print('tau alpha: ',alpha_t,'scale: ',scale_t)
+
+xgt=np.linspace(0,t_list_pos.max(),200)
+g_tau=gamma.pdf(xgt,alpha_t,scale=scale_t)
+
 # careful, I am overwriting gamma
 from scipy.stats import gamma
 
@@ -117,6 +129,10 @@ print('ampl alpha: ',alpha_A,'scale: ',scale_A)
 
 xgA=np.linspace(0,A_list_pos.max(),200)
 g_A=gamma.pdf(xgA,alpha_A,scale=scale_A)
+
+plt.figure()
+plt.title('D histogramm')
+plt.hist(D,100,normed=1)
 
 plt.figure()
 plt.title('tau histogramm')
