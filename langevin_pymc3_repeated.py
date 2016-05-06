@@ -64,6 +64,10 @@ mod = ExponentialModel()
 y = autocorr[:100]
 t = np.arange(100)
 
+acf_dict={'acf':y}
+acf_df=pd.DataFrame(acf_dict)
+acf_df.to_csv('acf'+str(last_entry)+'.csv')
+
 pars = mod.guess(y, x=t)
 out  = mod.fit(y, pars, x=t)
 print(out.fit_report(min_correl=0.25))
@@ -133,6 +137,7 @@ alpha_A=mean_A/scale_A
 print('alpha_A: ',alpha_A,'scale_A: ',scale_A)
 gA=gamma.pdf(xA,alpha_A,scale=scale_A)
 plt.plot(xA,gA)
+plt.show()
 
 repeat_dict2={"mu_A" : np.array([mean_A]),
             "sd_A" : np.array([std_A]),
@@ -156,5 +161,3 @@ tdf.to_csv('trace'+str(last_entry)+'.csv',index=False)
 
 pm.traceplot(trace)
 pm.summary(trace)
-plt.show()
-
