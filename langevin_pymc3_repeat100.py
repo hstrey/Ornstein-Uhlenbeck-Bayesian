@@ -50,6 +50,7 @@ for count in range(100):
 
     # see http://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.signal.fftconvolve.html
     autocorr = signal.fftconvolve(x, x[::-1], mode='full')
+    n=len(autocorr)
     autocorr=autocorr[int((n-1)/2):]*2.0/(n+1)
     datadict['acf']=autocorr
 
