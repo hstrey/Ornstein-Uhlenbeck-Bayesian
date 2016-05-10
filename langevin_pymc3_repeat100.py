@@ -6,11 +6,17 @@ from lmfit.models import ExponentialModel
 import pandas as pd
 import os.path
 import sys
+from itertools import accumulate
+import pymc3 as pm
 
 k,ga,D = 1.0,1.0,1.0
 delta_t=0.01
 ampl = np.sqrt(2*D*delta_t)
 N=100
+
+# differential equation x_i = x_(i-1) - k/gamma*x_(i-1) + sqrt(2*D*delta_t)*w_i
+def next_point(x,y):
+    return x - k/ga*x*delta_t + ampl*y
 
 # repeat 100 times
 for count in range(100):
@@ -31,16 +37,13 @@ for count in range(100):
     sd_A=repeat["sd_A"][last_entry-1]
     mu_D=repeat["mu_D"][last_entry-1]
     sd_D=repeat["sd_D"][last_entry-1]
-
+    
+    print('using muA: ',mu_A,'sd_A: ',sd_A,'mu_D: ',mu_D,'sd_D: ',sd_D)
+    
     datadict={}
 
     # random force
     w=np.random.normal(0,1,N)
-
-    # differential equation x_i = x_(i-1) - k/gamma*x_(i-1) + sqrt(2*D*delta_t)*w_i
-    from itertools import accumulate
-    def next_point(x,y):
-        return x - k/ga*x*delta_t + ampl*y
 
     x = np.fromiter(accumulate(w, next_point),np.float)
 
@@ -55,15 +58,11 @@ for count in range(100):
     datadict['acf']=autocorr
 
     df=pd.DataFrame(datadict)
-    df.to_csv('data.csv')
+    df.to_csv('data'+str(last_entry)+'.csv')
 
     mod = ExponentialModel()
     y = autocorr[:100]
     t = np.arange(100)
-
-    acf_dict={'acf':y}
-    acf_df=pd.DataFrame(acf_dict)
-    acf_df.to_csv('acf'+str(last_entry)+'.csv')
 
     pars = mod.guess(y, x=t)
     out  = mod.fit(y, pars, x=t)
@@ -84,7 +83,6 @@ for count in range(100):
     fits.to_csv("fits.csv",index=False)
 
     # now lets model this data using pymc
-    import pymc3 as pm
     # define the model/function for diffusion in a harmonic potential
     DHP_model = pm.Model()
     with DHP_model:
