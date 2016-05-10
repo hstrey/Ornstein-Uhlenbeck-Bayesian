@@ -9,14 +9,14 @@ import sys
 from itertools import accumulate
 import pymc3 as pm
 
-k,ga,D = 1.0,1.0,1.0
-delta_t=0.01
-ampl = np.sqrt(2*D*delta_t)
 N=100
 
 # differential equation x_i = x_(i-1) - k/gamma*x_(i-1) + sqrt(2*D*delta_t)*w_i
 def next_point(x,y):
-    return x - k/ga*x*delta_t + ampl*y
+    k,ga,diff = 1.0,1.0,1.0
+    delta_t=0.01
+    amplitude = np.sqrt(2*diff*delta_t)
+    return x - k/ga*x*delta_t + amplitude*y
 
 # repeat 100 times
 for count in range(100):
