@@ -10,11 +10,11 @@ from itertools import accumulate
 import pymc3 as pm
 
 N=100
+delta_t=0.01
 
 # differential equation x_i = x_(i-1) - k/gamma*x_(i-1) + sqrt(2*D*delta_t)*w_i
 def next_point(x,y):
     k,ga,diff = 1.0,1.0,1.0
-    delta_t=0.01
     amplitude = np.sqrt(2*diff*delta_t)
     return x - k/ga*x*delta_t + amplitude*y
 
