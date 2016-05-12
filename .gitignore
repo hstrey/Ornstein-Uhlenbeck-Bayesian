@@ -1,0 +1,7 @@
+# ignore output files
+.csv
+.png
+
+# ignore data folder
+results/
+
