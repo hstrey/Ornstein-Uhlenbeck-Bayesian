@@ -7,6 +7,8 @@ from lmfit.models import ExponentialModel
 import pandas as pd
 import os.path
 import sys
+from itertools import accumulate
+import pymc3 as pm
 
 N=100
 delta_t=0.01
