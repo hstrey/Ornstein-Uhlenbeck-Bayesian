@@ -33,7 +33,7 @@ def next_point_RK4(x,y):
     k3=-a*(x+k2)
     return x + (k0+2*k1+2*k2+k3)/6 + ampl*y
 
-N=5000
+N=100
 M=10000
 t_list=[]
 A_list=[]
@@ -53,8 +53,8 @@ for i in range(M):
     autocorr=autocorr[int((n-1)/2):]*2.0/(n+1)
     acf_avg=acf_avg+autocorr
     acf_std=acf_std+autocorr**2
-    y = autocorr[:200]
-    t = np.arange(200)
+    y = autocorr[:100]
+    t = np.arange(100)
 
     pars = mod.guess(y, x=t)
     out  = mod.fit(y, pars, x=t)
@@ -66,7 +66,7 @@ for i in range(M):
     print('mean: ',x.mean(),'std: ',x.std(),'amplitude: ',out.values['amplitude'],'decay: ',out.values['decay'])
 
 acf_avg=acf_avg/M
-acf_stderr=np.sqrt((acf_std-acf_avg**2)/M/M)
+acf_stderr=np.sqrt((acf_std/M-(acf_avg/M)**2)/M)
 y = acf_avg[:N]
 dy=acf_stderr[:N]
 t = np.arange(N)
@@ -95,6 +95,9 @@ A_list_pos=A_list[np.logical_and(t_list>=0,t_list<4000)]
 mean_list_pos=mean_list[np.logical_and(t_list>=0,t_list<4000)]
 std_list_pos=std_list[np.logical_and(t_list>=0,t_list<4000)]
 
+# careful, I am overwriting gamma
+from scipy.stats import gamma
+
 # calculate diffusion coefficient from tau and amplitude
 D=A_list_pos/t_list_pos/delta_t
 mean_D=D.mean()
@@ -102,13 +105,10 @@ std_D=D.std()
 print('D mean: ',mean_D,'std: ',std_D)
 scale_D=std_D**2/mean_D
 alpha_D=mean_D/scale_D
-print('tau alpha: ',alpha_t,'scale: ',scale_t)
+print('D alpha: ',alpha_D,'scale: ',scale_D)
 
-xgt=np.linspace(0,t_list_pos.max(),200)
-g_tau=gamma.pdf(xgt,alpha_t,scale=scale_t)
-
-# careful, I am overwriting gamma
-from scipy.stats import gamma
+xgt=np.linspace(0,D.max(),200)
+g_tau=gamma.pdf(xgt,alpha_D,scale=scale_D)
 
 mean_t=t_list_pos.mean()
 std_t=t_list_pos.std()
