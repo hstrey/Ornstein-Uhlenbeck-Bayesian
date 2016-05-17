@@ -33,24 +33,28 @@ def next_point_RK4(x,y):
     k3=-a*(x+k2)
     return x + (k0+2*k1+2*k2+k3)/6 + ampl*y
 
-N=100
+N=500
 M=10000
 t_list=[]
 A_list=[]
 mean_list=[]
 std_list=[]
 mod = ExponentialModel()
-acf_avg=np.zeros(N)
-acf_std=np.zeros(N)
+acf_avg=np.zeros(int(N/2))
+acf_std=np.zeros(int(N/2))
 for i in range(M):
     # random force
     w=np.random.normal(0,1,N)
     x = np.fromiter(accumulate(w, next_point_euler),np.float)
 
     # see http://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.signal.fftconvolve.html
-    autocorr = signal.fftconvolve(x, x[::-1], mode='full')
-    n=len(autocorr)
-    autocorr=autocorr[int((n-1)/2):]*2.0/(n+1)
+    # autocorr = signal.fftconvolve(x, x[::-1], mode='full')
+    f = np.fft.rfft(x)
+    acf = np.fft.irfft(f * np.conjugate(f))
+    acf = np.fft.fftshift(acf) / N
+    autocorr=acf[int(N/2):]
+#    n=len(autocorr)
+#    autocorr=autocorr[int((n-1)/2):]*2.0/(n+1)
     acf_avg=acf_avg+autocorr
     acf_std=acf_std+autocorr**2
     y = autocorr[:100]
@@ -67,9 +71,9 @@ for i in range(M):
 
 acf_avg=acf_avg/M
 acf_stderr=np.sqrt((acf_std/M-(acf_avg/M)**2)/M)
-y = acf_avg[:N]
-dy=acf_stderr[:N]
-t = np.arange(N)
+y = acf_avg
+dy=acf_stderr
+t = np.arange(int(N/2))
 
 pars = mod.guess(y, x=t)
 out  = mod.fit(y, pars, x=t, weights=1./dy)

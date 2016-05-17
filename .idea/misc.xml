@@ -11,11 +11,4 @@
     <ConfirmationsSetting value="0" id="Remove" />
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.5.1 (~/anaconda/envs/python3/bin/python)" project-jdk-type="Python SDK" />
-  <component name="PyConsoleOptionsProvider">
-    <option name="myPythonConsoleState">
-      <console-settings sdk-home="$USER_HOME$/anaconda/bin/python">
-        <option name="mySdkHome" value="$USER_HOME$/anaconda/bin/python" />
-      </console-settings>
-    </option>
-  </component>
 </project>
