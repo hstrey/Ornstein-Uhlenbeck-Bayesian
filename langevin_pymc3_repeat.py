@@ -100,7 +100,6 @@ with DHP_model:
                             tau=1.0/A/S,
                             observed=x[i])
 
-with DHP_model:
     start = pm.find_MAP()
     print(start)
     trace = pm.sample(100000, start=start)
