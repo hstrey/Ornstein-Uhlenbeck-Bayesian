@@ -14,26 +14,13 @@ from scipy import signal
 from lmfit.models import ExponentialModel
 import pandas as pd
 from itertools import accumulate
+import langevin
 
-k,gamma,D = 1.0,1.0,1.0
+k,ga,D = 1.0,1.0,1.0
 delta_t=0.01
-ampl = np.sqrt(2*D*delta_t)
-a=k/gamma*delta_t
-
-# differential equation x_i = x_(i-1) - k/gamma*x_(i-1) + sqrt(2*D*delta_t)*w_i
-def next_point_euler(x,y):
-    return x - a*x + ampl*y
-    
-# differential equation x_i = x_(i-1) - k/gamma*x_(i-1) + sqrt(2*D*delta_t)*w_i
-# using 4th-order Runge-Kutta
-def next_point_RK4(x,y):
-    k0=-a*x
-    k1=-a*(x+k0/2.0)
-    k2=-a*(x+k1/2.0)
-    k3=-a*(x+k2)
-    return x + (k0+2*k1+2*k2+k3)/6 + ampl*y
 
 N=500
+G=100
 M=10000
 t_list=[]
 A_list=[]
@@ -45,7 +32,7 @@ acf_std=np.zeros(int(N/2))
 for i in range(M):
     # random force
     w=np.random.normal(0,1,N)
-    x = np.fromiter(accumulate(w, next_point_euler),np.float)
+    x = langevin.time_series(k=k,ga=ga,diff=D,delta_t=delta_t,N=N,G=G)
 
     # see http://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.signal.fftconvolve.html
     # autocorr = signal.fftconvolve(x, x[::-1], mode='full')
@@ -57,8 +44,8 @@ for i in range(M):
 #    autocorr=autocorr[int((n-1)/2):]*2.0/(n+1)
     acf_avg=acf_avg+autocorr
     acf_std=acf_std+autocorr**2
-    y = autocorr[:100]
-    t = np.arange(100)
+    y = autocorr[:min(int(N/2),1000)]
+    t = np.arange(min(int(N/2),1000))
 
     pars = mod.guess(y, x=t)
     out  = mod.fit(y, pars, x=t)
@@ -155,10 +142,10 @@ datadict['A_list']=A_list
 datadict['mean_list']=mean_list
 datadict['std_list']=std_list
 df=pd.DataFrame(datadict)
-df.to_csv('5000.csv')
+df.to_csv(str(N)+'.csv')
 
 acf_dict={}
 acf_dict['acf']=acf_avg
 acf_dict['acf_stderr']=acf_stderr
 df=pd.DataFrame(acf_dict)
-df.to_csv('acf_5000.csv')
+df.to_csv('acf_'+str(N)+'.csv')

@@ -7,18 +7,13 @@ from lmfit.models import ExponentialModel
 import pandas as pd
 import os.path
 import sys
-from itertools import accumulate
 import pymc3 as pm
+import langevin
 
 N=100
+G=100 # G is sampling interval, only one data point out of G simulated points is taken
 delta_t=0.01
 results_dir="results/"
-
-# differential equation x_i = x_(i-1) - k/gamma*x_(i-1) + sqrt(2*D*delta_t)*w_i
-def next_point(x,y):
-    k,ga,diff = 1.0,1.0,1.0
-    amplitude = np.sqrt(2*diff*delta_t)
-    return x - k/ga*x*delta_t + amplitude*y
 
 if os.path.isfile(results_dir+"repeat.csv"):
     repeat = pd.read_csv(results_dir+"repeat.csv")
@@ -43,9 +38,8 @@ print('using muA: ',mu_A,'sd_A: ',sd_A,'mu_D: ',mu_D,'sd_D: ',sd_D)
 datadict={}
 
 # random force
-w=np.random.normal(0,1,N)
 
-x = np.fromiter(accumulate(w, next_point),np.float)
+x=langevin.time_series(k=1.0,ga=1.0,diff=1.0,delta_t=0.01,N=N,G=G) # only use every G point
 
 datadict['x']=x
 
