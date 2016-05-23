@@ -19,9 +19,9 @@ import langevin
 k,ga,D = 1.0,1.0,1.0
 delta_t=0.01
 
-N=500
+N=100
 G=100
-M=10000
+M=50
 t_list=[]
 A_list=[]
 mean_list=[]
@@ -91,6 +91,7 @@ from scipy.stats import gamma
 
 # calculate diffusion coefficient from tau and amplitude
 D=A_list_pos/t_list_pos/delta_t
+D=D[np.logical_and(D>=0,D<4000)] # remove outliers
 mean_D=D.mean()
 std_D=D.std()
 print('D mean: ',mean_D,'std: ',std_D)

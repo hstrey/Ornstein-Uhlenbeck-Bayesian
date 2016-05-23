@@ -2,6 +2,15 @@ import numpy as np
 from itertools import accumulate
 
 def time_series(k,ga,diff,delta_t,N,G):
+    """ returns a time series that is the solution of a Langevin equation describing a Brownian particle in a harmonic potential
+    :param k: Spring constant
+    :param ga: friction coefficient
+    :param diff: Diffusion coefficient
+    :param delta_t: time step
+    :param N: number of samples that are returned
+    :param G: ratio of simulated data points and returned samples (100 means that only every 100th point is used)
+    :return:
+    """
     # differential equation x_i = x_(i-1) - k/gamma*x_(i-1) + sqrt(2*D*delta_t)*w_i
     def next_point(x, y):
         amplitude = np.sqrt(2 * diff * delta_t / float(G))
