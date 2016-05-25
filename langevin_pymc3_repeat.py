@@ -39,6 +39,7 @@ datadict={}
 # read dataset from file
 
 data=pd.read_csv(results_dir+'data'+str(last_entry-1)+'.csv')
+x=data['x']
 N=len(x)
 
 print("std: ",x.std(),"mean: ",x.mean(),'length: ',N)
