@@ -10,16 +10,15 @@ import sys
 import pymc3 as pm
 import langevin
 
-N=100
-G=100 # G is sampling interval, only one data point out of G simulated points is taken
+
 delta_t=0.01
-results_dir="results/"
+results_dir="results/data100/"
 
 if os.path.isfile(results_dir+"repeat.csv"):
     repeat = pd.read_csv(results_dir+"repeat.csv")
 else:
     repeat_dict={"mu_A" : np.array([1.0]),
-                 "sd_A" : np.array([10.0]),
+                 "sd_A" : np.array([20.0]),
                  "mu_D" : np.array([1.0]),
                  "sd_D" : np.array([10.0])}
     repeat = pd.DataFrame(repeat_dict)
@@ -37,44 +36,12 @@ print('using muA: ',mu_A,'sd_A: ',sd_A,'mu_D: ',mu_D,'sd_D: ',sd_D)
 
 datadict={}
 
-# random force
+# read dataset from file
 
-x=langevin.time_series(k=1.0,ga=1.0,diff=1.0,delta_t=0.01,N=N,G=G) # only use every G point
-
-datadict['x']=x
+data=pd.read_csv(results_dir+'data'+str(repeat-1)+'.csv')
+N=len(x)
 
 print("std: ",x.std(),"mean: ",x.mean())
-
-# see http://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.signal.fftconvolve.html
-autocorr = signal.fftconvolve(x, x[::-1], mode='full')
-n=len(autocorr)
-autocorr=autocorr[int((n-1)/2):]*2.0/(n+1)
-datadict['acf']=autocorr
-
-df=pd.DataFrame(datadict)
-df.to_csv(results_dir+'data'+str(last_entry)+'.csv')
-
-mod = ExponentialModel()
-y = autocorr[:100]
-t = np.arange(100)
-
-pars = mod.guess(y, x=t)
-out  = mod.fit(y, pars, x=t)
-print(out.fit_report(min_correl=0.25))
-
-ampl=out.best_values['amplitude']
-decay=out.best_values['decay']
-
-fits_dict={'Ampl' : np.array([ampl]),
-           'decay' : np.array([decay])}
-fits=pd.DataFrame(fits_dict)
-
-if os.path.isfile(results_dir+"fits.csv"):
-    old_fits=pd.read_csv(results_dir+"fits.csv")
-    print(old_fits)
-    fits = pd.concat([old_fits,fits],ignore_index=True)
-
-fits.to_csv(results_dir+"fits.csv",index=False)
 
 # now lets model this data using pymc
 # define the model/function for diffusion in a harmonic potential

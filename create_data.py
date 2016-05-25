@@ -12,45 +12,37 @@ delta_t=0.01
 
 datadir='results/data100/'
 
-N=10000 # length of individual data sets = 1 relaxation time
-M=100 # create 100 data sets
+N=100 # length of individual data sets. 100 = relaxation time
+M=100 # number of data sets
 
-P=1000 # points to fit autocorrelation function
+P=1000 # range to fit acf
 
-acf_sum=np.zeros(int(N/2))
-acf_sumsq=np.zeros(int(N/2))
+x = langevin.time_series(A=A,D=D,delta_t=delta_t,N=N*M)
 
-for i in range(M):
-    x = langevin.time_series(A=A,D=D,delta_t=delta_t,N=N)
+# calculate autocorrelation function
+f = np.fft.rfft(x)
+acf = np.fft.irfft(f * np.conjugate(f))
+acf = np.fft.fftshift(acf) / N/M
+autocorr=acf[int(N*M/2):]
 
-    # calculate autocorrelation function
-    f = np.fft.rfft(x)
-    acf = np.fft.irfft(f * np.conjugate(f))
-    acf = np.fft.fftshift(acf) / N
-    autocorr=acf[int(N/2):]
-
-    acf_sum=acf_sum+autocorr
-    acf_sumsq=acf_sumsq+autocorr**2
-
-    print(i)
-
-#    df=pd.DataFrame({'x':x})
-#    df.to_csv(datadir+'data'+str(i)+'.csv')
-
-acf_avg=acf_sum/M
-acf_stderr=np.sqrt(acf_sumsq/M-acf_avg**2)/np.sqrt(M)
-
-y = acf_avg[:min(int(N/2),P)]
-t = np.arange(min(int(N/2),P))
+y = autocorr[:min(int(N*M/2),P)]
+t = np.arange(min(int(N*M/2),P))
 
 mod=ExponentialModel()
 pars = mod.guess(y, x=t)
-out  = mod.fit(y, pars, x=t, weights=1/acf_stderr[:min(int(N/2),P)])
+out  = mod.fit(y, pars, x=t)
 print(out.fit_report(min_correl=0.25))
 
 plt.figure()
-plt.errorbar(t,y,yerr=acf_stderr[:min(int(N/2),P)],fmt="ob")
+plt.plot(t,y,"o")
 plt.plot(t,out.best_fit)
 plt.title('acf')
 
 plt.show()
+
+df=pd.DataFrame({'x':x})
+df.to_csv(datadir+'data.csv',index=False)
+
+for i in range(M):
+    df=pd.DataFrame({'x':x[i*N:(i+1)*N]})
+    df.to_csv(datadir+'data'+str(i)+'.csv',index=False)
