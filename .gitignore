@@ -5,3 +5,5 @@
 # ignore data folder
 results/
 
+# ignore pycache
+__pycache__/

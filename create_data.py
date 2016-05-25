@@ -7,22 +7,21 @@ import pandas as pd
 from itertools import accumulate
 import langevin
 
-k,ga,D = 1.0,1.0,1.0
+A,D = 1.0,1.0
 delta_t=0.01
 
 datadir='results/data100/'
 
-N=1000 # length of individual data sets = 1 relaxation time
-G=50 # simulation oversampling
+N=10000 # length of individual data sets = 1 relaxation time
 M=100 # create 100 data sets
 
-P=250 # points to fit autocorrelation function
+P=1000 # points to fit autocorrelation function
 
 acf_sum=np.zeros(int(N/2))
 acf_sumsq=np.zeros(int(N/2))
 
 for i in range(M):
-    x = langevin.time_series(k=k,ga=ga,diff=D,delta_t=delta_t,N=N,G=G)
+    x = langevin.time_series(A=A,D=D,delta_t=delta_t,N=N)
 
     # calculate autocorrelation function
     f = np.fft.rfft(x)
