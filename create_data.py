@@ -13,7 +13,7 @@ delta_t=0.01
 datadir='results/data100/'
 
 N=1000 # length of individual data sets = 1 relaxation time
-G=100 # simulation oversampling
+G=50 # simulation oversampling
 M=100 # create 100 data sets
 
 P=250 # points to fit autocorrelation function
