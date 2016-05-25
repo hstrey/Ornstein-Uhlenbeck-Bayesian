@@ -38,10 +38,10 @@ datadict={}
 
 # read dataset from file
 
-data=pd.read_csv(results_dir+'data'+str(repeat-1)+'.csv')
+data=pd.read_csv(results_dir+'data'+str(last_entry-1)+'.csv')
 N=len(x)
 
-print("std: ",x.std(),"mean: ",x.mean())
+print("std: ",x.std(),"mean: ",x.mean(),'length: ',N)
 
 # now lets model this data using pymc
 # define the model/function for diffusion in a harmonic potential
@@ -97,4 +97,4 @@ tracedict['A']=trace['A']
 tracedict['A_log']=trace['A_log']
 
 tdf=pd.DataFrame(tracedict)
-tdf.to_csv(results_dir+'trace'+str(last_entry)+'.csv',index=False)
+tdf.to_csv(results_dir+'trace'+str(last_entry-1)+'.csv',index=False)

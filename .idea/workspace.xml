@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7917aa13-7769-43b7-8de5-fa9fae6ea44f" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/create_data.py" afterPath="$PROJECT_DIR$/create_data.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/langevin_pymc3_repeat.py" afterPath="$PROJECT_DIR$/langevin_pymc3_repeat.py" />
     </list>
     <ignored path="Bayesian Analysis.iws" />
@@ -81,8 +80,8 @@
       <file leaf-file-name="langevin_pymc3_repeat.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/langevin_pymc3_repeat.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.12627986">
-              <caret line="40" column="57" selection-start-line="40" selection-start-column="57" selection-end-line="40" selection-end-column="57" />
+            <state vertical-scroll-proportion="1.6894197">
+              <caret line="99" column="47" selection-start-line="99" selection-start-column="47" selection-end-line="99" selection-end-column="47" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -834,8 +833,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/langevin_pymc3_repeat.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.12627986">
-          <caret line="40" column="57" selection-start-line="40" selection-start-column="57" selection-end-line="40" selection-end-column="57" />
+        <state vertical-scroll-proportion="1.6894197">
+          <caret line="99" column="47" selection-start-line="99" selection-start-column="47" selection-end-line="99" selection-end-column="47" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
