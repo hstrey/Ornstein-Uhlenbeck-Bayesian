@@ -7,3 +7,7 @@ results/
 
 # ignore pycache
 __pycache__/
+
+# ignore PyCharm settings
+.idea/
+
