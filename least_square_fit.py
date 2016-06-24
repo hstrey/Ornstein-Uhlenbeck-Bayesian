@@ -15,7 +15,7 @@ def myfunction(t,amp,D):
 MyModel=lm.Model(myfunction)
 
 results_dir='results/data100/'
-N=1000 # data length that is used for analysis
+N=100 # data length that is used for analysis
 M=250 # number of points of the autocorrelation function that is used for fitting
 
 data=pd.read_csv(results_dir+"data.csv")
