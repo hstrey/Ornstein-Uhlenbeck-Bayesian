@@ -7,7 +7,6 @@ from lmfit.models import ExponentialModel
 import pandas as pd
 import os.path
 import sys
-import pymc3 as pm
 import langevin
 
 
