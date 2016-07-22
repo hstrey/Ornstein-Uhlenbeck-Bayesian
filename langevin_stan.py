@@ -8,6 +8,10 @@ import matplotlib.pyplot as plt
 langevin_code = """
 data {
 int<lower=0> N;
+real<lower=0> alpha_D;
+real<lower=0> beta_D;
+real<lower=0> alpha_A;
+real<lower=0> beta_A;
 vector[N] y;
 }
 parameters {
@@ -15,8 +19,8 @@ real<lower=0> D;
 real<lower=0> A;
 }
 model {
-D ~ gamma(1.0/100.0,1.0/100.0);
-A ~ gamma(1.0/400.0, 1.0/400.0);
+D ~ gamma(alpha_D,beta_D);
+A ~ gamma(alpha_A, beta_A);
 y[1] ~ normal(0,sqrt(A));
 for (n in 2:N)
     y[n] ~ normal(y[n-1]*exp(-0.01*D/A), sqrt(A*(1-exp(-0.02*D/A))));
@@ -24,6 +28,10 @@ for (n in 2:N)
 """
 
 langevin_dat = {'N': 50,
+                'alpha_A' : 0.0025,
+                'beta_A' : 0.0025,
+                'alpha_D' : 0.01,
+                'beta_D' : 0.01,
                 'y' : [0.6547612311626614,
                         0.6963454770690765,
                         0.3804548056778836,

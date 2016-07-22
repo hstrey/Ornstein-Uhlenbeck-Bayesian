@@ -29,7 +29,11 @@ amplitude_var=[]
 diffusion=[]
 diffusion_var=[]
 
-v_sum=0
+a=[]
+
+v_sum=0 # sum of (x_i+1 - x_i)**2
+
+a_sum=0 # sum of (x_i+1 - x_i)*x_i
 
 for i in range(samples):
     if i<samples-1:
@@ -40,6 +44,10 @@ for i in range(samples):
         nu=data_length-1
     d=np.diff(x) # calculate the difference
     v_sum=v_sum+np.sum(d**2)
+
+    a_sum=a_sum+np.sum(d*x[:-1])
+
+    a.append(a_sum/nu)
 
     v=v_sum/nu
     mean=nu/(nu-2)*v
@@ -71,6 +79,12 @@ plt.title('D distribution')
 plt.plot(d,pd)
 plt.xlabel('d')
 plt.ylabel('p(d)')
+
+plt.figure()
+plt.title('a')
+plt.plot(a)
+plt.xlabel('iterations')
+plt.ylabel('a')
 
 plt.show()
 
