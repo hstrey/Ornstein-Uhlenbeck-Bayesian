@@ -12,12 +12,13 @@ import langevin
 
 delta_t=0.01
 results_dir="results/data50/"
+result_file="repeat.csv"
 
-if os.path.isfile(results_dir+"repeat.csv"):
-    repeat = pd.read_csv(results_dir+"repeat.csv")
+if os.path.isfile(results_dir+result_file):
+    repeat = pd.read_csv(results_dir+result_file)
 else:
     repeat_dict={"mu_A" : np.array([1.0]),
-                 "sd_A" : np.array([20.0]),
+                 "sd_A" : np.array([40.0]),
                  "mu_D" : np.array([1.0]),
                  "sd_D" : np.array([10.0])}
     repeat = pd.DataFrame(repeat_dict)
@@ -87,7 +88,7 @@ repeat_dict2={"mu_A" : np.array([mean_A]),
 # add new gamma distributions to file
 repeat2 = pd.DataFrame(repeat_dict2)
 repeat_new=pd.concat([repeat,repeat2],ignore_index=True)
-repeat_new.to_csv(results_dir+"repeat.csv", index=False)
+repeat_new.to_csv(results_dir+result_file, index=False)
 
 # save the data
 tracedict={}
