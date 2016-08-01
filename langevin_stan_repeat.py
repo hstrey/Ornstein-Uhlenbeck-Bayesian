@@ -102,5 +102,5 @@ resultdict={ 'mean_A' : np.array(mA),
              }
 
 df=pd.DataFrame(resultdict)
-df.to_csv(data_dir+'stan_results.csv',index=False)
+df.to_csv(data_dir+'stan_results3.csv',index=False)
 
