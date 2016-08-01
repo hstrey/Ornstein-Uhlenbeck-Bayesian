@@ -52,7 +52,7 @@ mA,sA,mD,sD = [],[],[],[]
 # compile Stan model for reuse
 sm = pystan.StanModel(model_code=langevin_code)
 
-for file in data_list:
+for i,file in enumerate(data_list):
     y = pd.read_csv(data_dir+file)
     N = len(y['x'])
 
@@ -68,6 +68,14 @@ for file in data_list:
     la = fit.extract(permuted=True)
     A = la['A']
     D = la['D']
+
+    # save the data
+    tracedict = {}
+    tracedict['D'] = D
+    tracedict['A'] = A
+
+    tdf = pd.DataFrame(tracedict)
+    tdf.to_csv(data_dir + 'trace' + str(i) + '.csv', index=False)
 
     mean_D=D.mean()
     std_D=D.std()
