@@ -1,7 +1,9 @@
 import pymc3 as pm
+import theano
 from theano import shared
 import numpy as np
 import scipy as sp
+theano.config.gcc.cxxflags = "-fbracket-depth=16000" # default is 256
 
 class BayesianModel(object):
     samples = 10000

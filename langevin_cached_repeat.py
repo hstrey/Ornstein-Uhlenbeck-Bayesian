@@ -17,9 +17,9 @@ print(data_list)
 
 # initial prior
 mean_A=1.0
-std_A=40
+std_A=40.0
 mean_D=1.0
-std_D=10
+std_D=10.0
 
 #lists for data storage
 mA,sA,mD,sD = [mean_A],[std_A],[mean_D],[std_D]
