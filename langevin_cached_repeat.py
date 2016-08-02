@@ -34,7 +34,8 @@ for i,file in enumerate(data_list):
                    sd_D=std_D,
                    mu_A=mean_A,
                    sd_A=std_A,
-                   delta_t=0.01)
+                   delta_t=0.01,
+                   N=50)
 
     A = trace['A']
     D = trace['D']
@@ -45,7 +46,7 @@ for i,file in enumerate(data_list):
     tracedict['A'] = A
 
     tdf = pd.DataFrame(tracedict)
-    tdf.to_csv(data_dir + 'trace_pymc3_' + str(i) + '.csv', index=False)
+    tdf.to_csv(data_dir + 'trace2_pymc3_' + str(i) + '.csv', index=False)
 
     mean_D=D.mean()
     std_D=D.std()

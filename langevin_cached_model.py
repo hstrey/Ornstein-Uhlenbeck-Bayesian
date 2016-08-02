@@ -54,7 +54,7 @@ class Langevin(BayesianModel):
     gamma distributions for D and A
     """
 
-    def create_model(self, x=None, mu_D=None, sd_D=None, mu_A=None, sd_A=None, delta_t=0.01):
+    def create_model(self, x=None, mu_D=None, sd_D=None, mu_A=None, sd_A=None, delta_t=0.01, N=50):
         with pm.Model() as model:
             D = pm.Gamma('D', mu=mu_D, sd=sd_D)
             A = pm.Gamma('A', mu=mu_A, sd=sd_A)
@@ -64,7 +64,7 @@ class Langevin(BayesianModel):
             ss = pm.exp(-delta_t * D / A)
 
             path = pm.Normal('path_0', mu=0.0, tau=1 / A, observed=x[0])
-            for i in range(1, 50):
+            for i in range(1, N.get_value()):
                 path = pm.Normal('path_%i' % i,
                                  mu=path * ss,
                                  tau=1.0 / A / S,
