@@ -54,7 +54,7 @@ class Langevin(BayesianModel):
     gamma distributions for D and A
     """
 
-    def create_model(self, x=None, mu_D=None, sd_D=None, mu_A=None, sd_A=None, delta_t=0.01, N=50):
+    def create_model(self, x=None, mu_D=None, sd_D=None, mu_A=None, sd_A=None, delta_t=None, N=None):
         with pm.Model() as model:
             D = pm.Gamma('D', mu=mu_D, sd=sd_D)
             A = pm.Gamma('A', mu=mu_A, sd=sd_A)

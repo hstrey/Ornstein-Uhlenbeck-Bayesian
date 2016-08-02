@@ -10,7 +10,6 @@ delta_t=0.01
 
 data=pd.read_csv(data_dir+data_file)
 data_length=len(data)
-data=np.array(data['x'])
 
 # initial prior
 mean_A=1.0
