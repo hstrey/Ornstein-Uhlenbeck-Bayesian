@@ -10,23 +10,22 @@ import langevin
 A,D = 1.0,1.0
 delta_t=0.01
 
-datadir='results/data100/'
+datadir='results/delta10-2/data2/'
 
-N=100 # length of individual data sets. 100 = relaxation time
-M=100 # number of data sets
+N=10000 # length of data set
 
 P=1000 # range to fit acf
 
-x = langevin.time_series(A=A,D=D,delta_t=delta_t,N=N*M)
+x = langevin.time_series(A=A,D=D,delta_t=delta_t,N=N)
 
 # calculate autocorrelation function
 f = np.fft.rfft(x)
 acf = np.fft.irfft(f * np.conjugate(f))
-acf = np.fft.fftshift(acf) / N/M
-autocorr=acf[int(N*M/2):]
+acf = np.fft.fftshift(acf) / N
+autocorr=acf[int(N/2):]
 
-y = autocorr[:min(int(N*M/2),P)]
-t = np.arange(min(int(N*M/2),P))
+y = autocorr[:min(int(N/2),P)]
+t = np.arange(min(int(N/2),P))
 
 mod=ExponentialModel()
 pars = mod.guess(y, x=t)
@@ -42,7 +41,3 @@ plt.show()
 
 df=pd.DataFrame({'x':x})
 df.to_csv(datadir+'data.csv',index=False)
-
-for i in range(M):
-    df=pd.DataFrame({'x':x[i*N:(i+1)*N]})
-    df.to_csv(datadir+'data'+str(i)+'.csv',index=False)
