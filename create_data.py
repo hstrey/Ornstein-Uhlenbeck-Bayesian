@@ -8,9 +8,9 @@ from itertools import accumulate
 import langevin
 
 A,D = 1.0,1.0
-delta_t=0.01
+delta_t=0.5
 
-datadir='results/delta10-2/data2/'
+datadir='results/delta05/data2/'
 
 N=10000 # length of data set
 
