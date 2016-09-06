@@ -12,25 +12,27 @@ data=pd.read_csv(data_dir+data_file)
 data_length=len(data)
 
 # initial prior
-mean_A=1.0
-std_A=40.0
-mean_D=1.0
-std_D=10.0
+# both D and A have mean 1 and std 10
+alpha_A=2.01
+beta_A=1.01
+alpha_D=2.01
+beta_D=1.01
 
 #lists for data storage
-mA,sA,mD,sD = [mean_A],[std_A],[mean_D],[std_D]
+mA,sA,mD,sD = [beta_A/(alpha_A-1)],[np.sqrt(beta_A**2/(alpha_A-1)**2/(alpha_A-2))],[beta_D/(alpha_D-1)],[np.sqrt(beta_D**2/(alpha_D-1)**2/(alpha_D-2))]
+aA,bA,aD,bD = [alpha_A],[beta_A],[alpha_D],[beta_D]
 # compile Stan model for reuse
-sm = lcm.Langevin2()
+sm = lcm.LangevinIG()
 
 for i in range(int(data_length/N)):
 
     x=data[i*N : (i+1)*N]
 
     trace = sm.run(x=x,
-                   mu_D=mean_D,
-                   sd_D=std_D,
-                   mu_A=mean_A,
-                   sd_A=std_A,
+                   aD=alpha_D,
+                   bD=beta_D,
+                   aA=alpha_A,
+                   bA=beta_A,
                    delta_t=delta_t,
                    N=N)
 
@@ -43,7 +45,7 @@ for i in range(int(data_length/N)):
     tracedict['A'] = A
 
     tdf = pd.DataFrame(tracedict)
-    tdf.to_csv(data_dir + 'trace_new'+str(N)+'_'+ str(i) + '.csv', index=False)
+    tdf.to_csv(data_dir + 'trace_IG'+str(N)+'_'+ str(i) + '.csv', index=False)
 
     mean_D=D.mean()
     std_D=D.std()
@@ -57,11 +59,25 @@ for i in range(int(data_length/N)):
     sA.append(std_A)
     print('mean_A: ',mean_A,'std_A: ',std_A)
 
+    alpha_A = (mean_A ** 2 / std_A ** 2) +2
+    beta_A = mean_A*(alpha_A - 1)
+    aA.append(alpha_A)
+    bA.append(beta_A)
+
+    alpha_D = (mean_D ** 2 / std_D ** 2) + 2
+    beta_D = mean_D * (alpha_D - 1)
+    aD.append(alpha_D)
+    bD.append(beta_D)
+
 resultdict={ 'mean_A' : np.array(mA),
              'std_A' : np.array(sA),
              'mean_D' : np.array(mD),
              'std_D' : np.array(sD),
+             'alpha_A' : np.array(aA),
+             'beta_A' : np.array(bA),
+             'alpha_D' : np.array(aD),
+             'beta_D' : np.array(bD),
              }
 
 df=pd.DataFrame(resultdict)
-df.to_csv(data_dir+'results_new'+str(N)+'.csv',index=False)
+df.to_csv(data_dir+'resultsIG'+str(N)+'.csv',index=False)

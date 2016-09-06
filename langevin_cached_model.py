@@ -1,9 +1,40 @@
 import pymc3 as pm
-import theano
+import theano.tensor as tt
 from theano import shared
 import numpy as np
 import scipy as sp
 # theano.config.gcc.cxxflags = "-fbracket-depth=16000" # default is 256
+
+class Ornstein_Uhlenbeck(pm.Continuous):
+    """
+    Ornstein-Uhlenbeck Process
+    Parameters
+    ----------
+    D : tensor
+        D > 0, diffusion coefficient
+    A : tensor
+        A > 0, amplitude of fluctuation <x**2>=A
+    delta_t: scalar
+        delta_t > 0, time step
+    """
+
+    def __init__(self, D=None, A=None, B=None,
+                 *args, **kwargs):
+        super(Ornstein_Uhlenbeck, self).__init__(*args, **kwargs)
+        self.D = D
+        self.A = A
+        self.B = B
+
+    def logp(self, x):
+        D = self.D
+        A = self.A
+        B = self.B
+
+        x_im1 = x[:-1]
+        x_i = x[1:]
+
+        ou_like = pm.Normal.dist(mu=x_im1*B, tau=1.0/A/(1-B**2)).logp(x_i)
+        return pm.Normal.dist(mu=0.0,tau=1.0/A).logp(x[0]) + tt.sum(ou_like)
 
 class BayesianModel(object):
     samples = 10000
@@ -59,14 +90,23 @@ class Langevin(BayesianModel):
             D = pm.Gamma('D', mu=mu_D, sd=sd_D)
             A = pm.Gamma('A', mu=mu_A, sd=sd_A)
 
-            S = 1.0 - pm.exp(-2.0 * delta_t * D / A)
+            B = pm.Deterministic('B', pm.exp(-delta_t * D / A))
 
-            ss = pm.exp(-delta_t * D / A)
+            path = Ornstein_Uhlenbeck('path',D=D, A=A, B=B, observed=x)
+        return model
 
-            path = pm.Normal('path_0', mu=0.0, tau=1 / A, observed=x[0])
-            for i in range(1, N.get_value()):
-                path = pm.Normal('path_%i' % i,
-                                 mu=path * ss,
-                                 tau=1.0 / A / S,
-                                 observed=x[i])
+class LangevinIG(BayesianModel):
+    """Bayesian model for a Ornstein-Uhlenback process.
+    The model has inputs x, and prior parameters for
+    gamma distributions for D and A
+    """
+
+    def create_model(self, x=None, aD=None, bD=None, aA=None, bA=None, delta_t=None, N=None):
+        with pm.Model() as model:
+            D = pm.InverseGamma('D', alpha=aD, beta=bD)
+            A = pm.InverseGamma('A', alpha=aA, beta=bA)
+
+            B = pm.Deterministic('B', pm.exp(-delta_t * D / A))
+
+            path = Ornstein_Uhlenbeck('path',D=D, A=A, B=B, observed=x)
         return model
