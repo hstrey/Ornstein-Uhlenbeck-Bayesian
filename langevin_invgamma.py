@@ -2,6 +2,11 @@ import langevin_cached_model as lcm
 import pandas as pd
 import numpy as np
 import argparse
+import lmfit as lm
+from scipy.stats import gamma
+
+def mygamma(x,alpha, beta):
+    return gamma.pdf(x,alpha, scale=1/beta)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -15,8 +20,6 @@ def main():
                         help='timestep')
 
     arg = parser.parse_args()
-
-    print(arg)
 
     data_dir=arg.dir
     data_file=arg.datafile
@@ -36,7 +39,10 @@ def main():
     #lists for data storage
     mA,sA,mD,sD = [beta_A/(alpha_A-1)],[np.sqrt(beta_A**2/(alpha_A-1)**2/(alpha_A-2))],[beta_D/(alpha_D-1)],[np.sqrt(beta_D**2/(alpha_D-1)**2/(alpha_D-2))]
     aA,bA,aD,bD = [alpha_A],[beta_A],[alpha_D],[beta_D]
-    # compile Stan model for reuse
+
+    gModel = lm.Model(mygamma)
+
+    # compile model for reuse
     sm = lcm.LangevinIG()
 
     for i in range(int(data_length/N)):
@@ -68,21 +74,33 @@ def main():
         sD.append(std_D)
         print('mean_D: ',mean_D,'std_D: ',std_D)
 
+        alpha_D = (mean_D ** 2 / std_D ** 2) + 2
+        beta_D = mean_D * (alpha_D - 1)
+        aD.append(alpha_D)
+        bD.append(beta_D)
+
         mean_A=A.mean()
         std_A=A.std()
         mA.append(mean_A)
         sA.append(std_A)
         print('mean_A: ',mean_A,'std_A: ',std_A)
 
-        alpha_A = (mean_A ** 2 / std_A ** 2) +2
-        beta_A = mean_A*(alpha_A - 1)
+        alpha_A = (mean_A ** 2 / std_A ** 2)
+        beta_A = alpha_A/mean_A
+
+        hist, bin_edges = np.histogram(A, bins='auto', density=True)
+        delta = bin_edges[1] - bin_edges[0]
+        x = bin_edges[:-1] + delta / 2
+
+        result = gModel.fit(hist, x=x, alpha=alpha_A, beta=beta_A)
+        print(result.fit_report())
+
+        alpha_A = result.best_values['alpha']
+        beta_A = result.best_values['beta']
+
         aA.append(alpha_A)
         bA.append(beta_A)
 
-        alpha_D = (mean_D ** 2 / std_D ** 2) + 2
-        beta_D = mean_D * (alpha_D - 1)
-        aD.append(alpha_D)
-        bD.append(beta_D)
 
     resultdict={ 'mean_A' : np.array(mA),
                  'std_A' : np.array(sA),

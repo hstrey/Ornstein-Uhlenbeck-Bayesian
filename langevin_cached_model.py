@@ -104,7 +104,7 @@ class LangevinIG(BayesianModel):
     def create_model(self, x=None, aD=None, bD=None, aA=None, bA=None, delta_t=None, N=None):
         with pm.Model() as model:
             D = pm.InverseGamma('D', alpha=aD, beta=bD)
-            A = pm.InverseGamma('A', alpha=aA, beta=bA)
+            A = pm.Gamma('A', alpha=aA, beta=bA)
 
             B = pm.Deterministic('B', pm.exp(-delta_t * D / A))
 
