@@ -18,6 +18,8 @@ def main():
                         help='number of datasets')
     parser.add_argument('-t', '--timestep', action='store', type=float, default=0.01,
                         help='timestep')
+    parser.add_argument('-s', '--samples', action='store', type=int, default=10000,
+                        help='MCMC samples per run')
 
     arg = parser.parse_args()
 
@@ -31,19 +33,20 @@ def main():
 
     # initial prior
     # both D and A have mean 1 and std 10
-    alpha_A=2.01
-    beta_A=1.01
+    alpha_A=0.01
+    beta_A=0.01
     alpha_D=2.01
     beta_D=1.01
 
     #lists for data storage
-    mA,sA,mD,sD = [beta_A/(alpha_A-1)],[np.sqrt(beta_A**2/(alpha_A-1)**2/(alpha_A-2))],[beta_D/(alpha_D-1)],[np.sqrt(beta_D**2/(alpha_D-1)**2/(alpha_D-2))]
+    mA,sA,mD,sD = [alpha_A/beta_A],[np.sqrt(alpha_A/beta_A**2)],[beta_D/(alpha_D-1.0)],[np.sqrt(beta_D**2/(alpha_D-1.0)**2/(alpha_D-2.0))]
     aA,bA,aD,bD = [alpha_A],[beta_A],[alpha_D],[beta_D]
 
     gModel = lm.Model(mygamma)
 
     # compile model for reuse
     sm = lcm.LangevinIG()
+    sm.samples=arg.samples
 
     for i in range(int(data_length/N)):
 
@@ -66,7 +69,7 @@ def main():
         tracedict['A'] = A
 
         tdf = pd.DataFrame(tracedict)
-        tdf.to_csv(data_dir + 'trace_IG'+str(N)+'_'+ str(i) + '.csv', index=False)
+        tdf.to_csv(data_dir + 'trace_IG_G'+str(N)+'_'+ str(i) + '.csv', index=False)
 
         mean_D=D.mean()
         std_D=D.std()
@@ -88,15 +91,15 @@ def main():
         alpha_A = (mean_A ** 2 / std_A ** 2)
         beta_A = alpha_A/mean_A
 
-        hist, bin_edges = np.histogram(A, bins='auto', density=True)
-        delta = bin_edges[1] - bin_edges[0]
-        x = bin_edges[:-1] + delta / 2
-
-        result = gModel.fit(hist, x=x, alpha=alpha_A, beta=beta_A)
-        print(result.fit_report())
-
-        alpha_A = result.best_values['alpha']
-        beta_A = result.best_values['beta']
+        # hist, bin_edges = np.histogram(A, bins='auto', density=True)
+        # delta = bin_edges[1] - bin_edges[0]
+        # x = bin_edges[:-1] + delta / 2
+        #
+        # result = gModel.fit(hist, x=x, alpha=alpha_A, beta=beta_A)
+        # print(result.fit_report())
+        #
+        #alpha_A = result.best_values['alpha']
+        #beta_A = result.best_values['beta']
 
         aA.append(alpha_A)
         bA.append(beta_A)
@@ -113,7 +116,7 @@ def main():
                  }
 
     df=pd.DataFrame(resultdict)
-    df.to_csv(data_dir+'resultsIG'+str(N)+'.csv',index=False)
+    df.to_csv(data_dir+'resultsIG_G'+str(N)+'.csv',index=False)
 
 if __name__ == "__main__":
     main()
