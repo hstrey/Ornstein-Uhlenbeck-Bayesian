@@ -16,23 +16,24 @@ import pandas as pd
 from itertools import accumulate
 import langevin
 
-k,ga,D = 1.0,1.0,1.0
+A,D = 1.0,1.0
 delta_t=0.01
 
-N=100
-G=100
-M=50
+N=1000
+M=10000
 t_list=[]
+tstd_list=[]
 A_list=[]
+Astd_list=[]
 mean_list=[]
 std_list=[]
 mod = ExponentialModel()
 acf_avg=np.zeros(int(N/2))
-acf_std=np.zeros(int(N/2))
+acf_var=np.zeros(int(N/2))
 for i in range(M):
     # random force
     w=np.random.normal(0,1,N)
-    x = langevin.time_series(k=k,ga=ga,diff=D,delta_t=delta_t,N=N,G=G)
+    x = langevin.time_series(A=A,D=D,delta_t=delta_t,N=N)
 
     # see http://docs.scipy.org/doc/scipy-0.15.1/reference/generated/scipy.signal.fftconvolve.html
     # autocorr = signal.fftconvolve(x, x[::-1], mode='full')
@@ -43,28 +44,30 @@ for i in range(M):
 #    n=len(autocorr)
 #    autocorr=autocorr[int((n-1)/2):]*2.0/(n+1)
     acf_avg=acf_avg+autocorr
-    acf_std=acf_std+autocorr**2
+    acf_var=acf_var+autocorr**2
     y = autocorr[:min(int(N/2),1000)]
     t = np.arange(min(int(N/2),1000))
 
-    pars = mod.guess(y, x=t)
-    out  = mod.fit(y, pars, x=t)
+    out  = mod.fit(y, amplitude=1.0, decay=100.0, x=t)
     #print(out.fit_report(min_correl=0.25))
     t_list.append(out.values['decay'])
+    tstd_list.append(out.covar[0,0])
     A_list.append(out.values['amplitude'])
+    Astd_list.append(out.covar[1,1])
+
     mean_list.append(x.mean())
     std_list.append(x.std())
     print('mean: ',x.mean(),'std: ',x.std(),'amplitude: ',out.values['amplitude'],'decay: ',out.values['decay'])
 
 acf_avg=acf_avg/M
-acf_stderr=np.sqrt((acf_std/M-(acf_avg/M)**2)/M)
+acf_stderr=np.sqrt((acf_var/M-(acf_avg/M)**2)/M)
 y = acf_avg
 dy=acf_stderr
 t = np.arange(int(N/2))
 
-pars = mod.guess(y, x=t)
-out  = mod.fit(y, pars, x=t, weights=1./dy)
+out  = mod.fit(y, amplitude=1.0, decay=100.0, x=t, weights=1./dy)
 print(out.fit_report(min_correl=0.25))
+print('covar[0,0]: ',out.covar[0,0],'covar[1,1]: ',out.covar[1,1])
 
 plt.figure()
 plt.errorbar(t,y,yerr=dy,fmt="ob")
@@ -77,21 +80,27 @@ plt.title('acf stddev')
 
 t_list=np.array(t_list)
 A_list=np.array(A_list)
+tstd_list=np.array(tstd_list)
+Astd_list=np.array(Astd_list)
 mean_list=np.array(mean_list)
 std_list=np.array(std_list)
 
 #eliminate outliers e.g. negative decay and very long decay
-t_list_pos=t_list[np.logical_and(t_list>=0,t_list<4000)]
-A_list_pos=A_list[np.logical_and(t_list>=0,t_list<4000)]
-mean_list_pos=mean_list[np.logical_and(t_list>=0,t_list<4000)]
-std_list_pos=std_list[np.logical_and(t_list>=0,t_list<4000)]
+t_list_pos=t_list[np.logical_and(t_list>=0,t_list<1000)]
+A_list_pos=A_list[np.logical_and(t_list>=0,t_list<1000)]
+
+tstd_list_pos=np.sqrt(tstd_list[np.logical_and(t_list>=0,t_list<1000)])
+Astd_list_pos=np.sqrt(Astd_list[np.logical_and(t_list>=0,t_list<1000)])
+
+mean_list_pos=mean_list[np.logical_and(t_list>=0,t_list<1000)]
+std_list_pos=std_list[np.logical_and(t_list>=0,t_list<1000)]
 
 # careful, I am overwriting gamma
 from scipy.stats import gamma
 
 # calculate diffusion coefficient from tau and amplitude
 D=A_list_pos/t_list_pos/delta_t
-D=D[np.logical_and(D>=0,D<4000)] # remove outliers
+D=D[np.logical_and(D>=0,D<1000)] # remove outliers
 mean_D=D.mean()
 std_D=D.std()
 print('D mean: ',mean_D,'std: ',std_D)
@@ -124,29 +133,37 @@ g_A=gamma.pdf(xgA,alpha_A,scale=scale_A)
 
 plt.figure()
 plt.title('D histogramm')
-plt.hist(D,100,normed=1)
+plt.hist(D,bins='auto',normed=1)
 
 plt.figure()
 plt.title('tau histogramm')
-plt.hist(t_list_pos,100,normed=1)
+plt.hist(t_list_pos,bins='auto', normed=True)
 plt.plot(xgt,g_tau)
 
 plt.figure()
 plt.title('amplitude histogramm')
-plt.hist(A_list_pos,100,normed=1)
+plt.hist(A_list_pos,bins='auto', normed=True)
 plt.plot(xgA,g_A)
+
+plt.figure()
+plt.title('tau std histogramm')
+plt.hist(tstd_list_pos, bins='auto', normed=True)
+
+plt.figure()
+plt.title('amplitude std histogramm')
+plt.hist(Astd_list_pos,bins='auto',normed=1)
 plt.show()
 
-datadict={}
-datadict['t_list']=t_list
-datadict['A_list']=A_list
-datadict['mean_list']=mean_list
-datadict['std_list']=std_list
+datadict=dict(t=t_list,
+              t_std=tstd_list,
+              A=A_list,
+              A_std=Astd_list,
+              mean=mean_list,
+              std=std_list)
 df=pd.DataFrame(datadict)
-df.to_csv(str(N)+'.csv')
+df.to_csv(str(N)+'x'+str(M)+'.csv',index=False)
 
-acf_dict={}
-acf_dict['acf']=acf_avg
-acf_dict['acf_stderr']=acf_stderr
+acf_dict=dict(acf=acf_avg,
+              acf_stderr=acf_stderr)
 df=pd.DataFrame(acf_dict)
-df.to_csv('acf_'+str(N)+'.csv')
+df.to_csv('acf_'+str(N)+'x'+str(M)+'.csv',index=False)
