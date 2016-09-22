@@ -34,9 +34,9 @@ def time_series(A,D,delta_t,N):
 
     #first point
     x=[np.random.normal(0,np.sqrt(A))]
+    stddev = np.sqrt(A * (1.0 - np.exp(-2.0 * D / A * delta_t)))
 
     for i in range(N-1):
-        stddev=np.sqrt(A*(1-np.exp(-2*D/A*delta_t)))
         x.append(np.random.normal(x[-1]*np.exp(-D/A*delta_t),stddev))
 
     return np.array(x)

@@ -117,14 +117,14 @@ class LangevinIG2(BayesianModel):
     gamma distributions for D and A
     """
 
-    def create_model(self, x1=None, x2=None, aD=None, bD=None, , aA1=None, bA1=None, aA2=None, bA2=None, delta_t=None, N=None):
+    def create_model(self, x1=None, x2=None, aD=None, bD=None, aA1=None, bA1=None, aA2=None, bA2=None, delta_t=None, N=None):
         with pm.Model() as model:
             D = pm.InverseGamma('D', alpha=aD, beta=bD)
             A1 = pm.Gamma('A1', alpha=aA1, beta=bA1)
             A2 = pm.Gamma('A2', alpha=aA2, beta=bA2)
 
             B1 = pm.Deterministic('B1', pm.exp(-delta_t * D / A1))
-            B1 = pm.Deterministic('B2', pm.exp(-delta_t * D / A2))
+            B2 = pm.Deterministic('B2', pm.exp(-delta_t * D / A2))
 
             path1 = Ornstein_Uhlenbeck('path1',D=D, A=A1, B=B1, observed=x1)
             path2 = Ornstein_Uhlenbeck('path2', D=D, A=A2, B=B2, observed=x2)
