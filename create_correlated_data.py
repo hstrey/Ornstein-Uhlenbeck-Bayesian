@@ -10,9 +10,9 @@ import langevin
 A1 = 1.0
 A2 = 0.5
 D = 1.0
-delta_t=0.01
+delta_t=0.5
 
-datadir='results/delta10-2/corr2/'
+datadir='results/delta05/corr2/'
 
 N=10000 # length of data set
 
