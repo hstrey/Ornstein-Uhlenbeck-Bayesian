@@ -11,3 +11,6 @@ __pycache__/
 # ignore PyCharm settings
 .idea/
 
+# ignore pyc
+.pyc
+
