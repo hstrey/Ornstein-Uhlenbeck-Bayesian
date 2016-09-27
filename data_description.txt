@@ -1,0 +1,14 @@
+Attached are voxel-wise time series for 4 regions of interest (MPFC, PCC, LLP, and RLP) from the Default Mode Network (DMN), from 2 'good' subjects. TR is 802 ms.
+
+The time series are either extracted after regression of confounds (detrending + regression of white, csf signals and motion) or after regression of confounds followed by bandpass filtering (0.01-0.1 Hz range).
+
+For example,
+
+mpfc_r_ts is a 515x736 matrix where rows are voxels in the MPFC and columns are time points, without filtering (there were originally 10 minutes of data = 748 points, but I cut off the first 10 seconds since they looked far away from baseline).
+
+mpfc_rf_ts   - the same thing after filtering in the range commonly used for DMN.
+
+The reason I think these are good subjects is that the correlations between the four regions' mean time series are high (after filtering):
+
+subject 37: 0.89, 0.70, 0.37, 0.83, 0.43, 0.46 (mpfc-pcc, mpfc-llp, mpfc-rlp, pcc-llp, pcc-rlp, llp-rlp)
+subject 38: 0.67, 0.35, 0.41, 0.57, 0.32, 0.53
