@@ -5,7 +5,7 @@ import numpy as np
 import scipy as sp
 # theano.config.gcc.cxxflags = "-fbracket-depth=16000" # default is 256
 
-class Ornstein_Uhlenbeck(pm.Continuous):
+class Ornstein_Uhlenbeck(pm.distribution.Continuous):
     """
     Ornstein-Uhlenbeck Process
     Parameters
@@ -24,6 +24,7 @@ class Ornstein_Uhlenbeck(pm.Continuous):
         self.D = D
         self.A = A
         self.B = B
+        self.mean = 0.
 
     def logp(self, x):
         D = self.D
@@ -111,6 +112,25 @@ class LangevinIG(BayesianModel):
             path = Ornstein_Uhlenbeck('path',D=D, A=A, B=B, observed=x)
         return model
     
+class LangevinPlusNoiseIG(BayesianModel):
+    """Bayesian model for a Ornstein-Uhlenback process + noise.
+    The model has inputs x, and prior parameters for
+    gamma distributions for D and A
+    """
+
+    def create_model(self, x=None, aD=None, bD=None, aA=None, bA=None, aN=None, bN=None, delta_t=None, N=None):
+        with pm.Model() as model:
+            D = pm.InverseGamma('D', alpha=aD, beta=bD)
+            A = pm.Gamma('A', alpha=aA, beta=bA)
+            sN = pm.InverseGamma('sN', alpha=aN, beta=bN)
+
+            B = pm.Deterministic('B', pm.exp(-delta_t * D / A))
+
+            path = Ornstein_Uhlenbeck('path',D=D, A=A, B=B, shape=x.shape)
+
+            X_obs = pm.Normal('X_obs', mu=path, sd=sN, observed=x)
+
+        return model
 
 class LangevinIG2(BayesianModel):
     """Bayesian model for a Ornstein-Uhlenback process.
