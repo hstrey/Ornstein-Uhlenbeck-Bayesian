@@ -110,6 +110,7 @@ class LangevinIG(BayesianModel):
 
             path = Ornstein_Uhlenbeck('path',D=D, A=A, B=B, observed=x)
         return model
+    
 
 class LangevinIG2(BayesianModel):
     """Bayesian model for a Ornstein-Uhlenback process.
