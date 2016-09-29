@@ -5,7 +5,7 @@ import numpy as np
 import scipy as sp
 # theano.config.gcc.cxxflags = "-fbracket-depth=16000" # default is 256
 
-class Ornstein_Uhlenbeck(pm.distribution.Continuous):
+class Ornstein_Uhlenbeck(pm.Continuous):
     """
     Ornstein-Uhlenbeck Process
     Parameters
@@ -126,7 +126,7 @@ class LangevinPlusNoiseIG(BayesianModel):
 
             B = pm.Deterministic('B', pm.exp(-delta_t * D / A))
 
-            path = Ornstein_Uhlenbeck('path',D=D, A=A, B=B, shape=x.shape)
+            path = Ornstein_Uhlenbeck('path',D=D, A=A, B=B, shape=(N,))
 
             X_obs = pm.Normal('X_obs', mu=path, sd=sN, observed=x)
 
