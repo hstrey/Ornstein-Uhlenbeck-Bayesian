@@ -6,17 +6,19 @@ import pymc3 as pm
 import scipy.io
 import scipy as sp
 
+region="mpfc"
+voxel=0
+
 oxy_data37=scipy.io.loadmat('OXY37_MRI_1_ts.mat')
 
-mpfc_r_ts=oxy_data37['mpfc_r_ts']
+data_region=oxy_data37[region+'_r_ts']
 
-mpfc=np.array(mpfc_r_ts[0])
-plt.plot(mpfc)
-print("mean: ",mpfc.mean())
-print("var: ",mpfc.std()**2)
-N=len(mpfc)
+time_series=np.array(data_region[voxel])
+plt.plot(time_series)
+print("mean: ",time_series.mean())
+print("var: ",time_series.std()**2)
+N=len(time_series)
 print("N: ",N)
-mpfc.shape
 
 # initial prior
 # both D and A have mean 1 and std 10
@@ -37,7 +39,7 @@ with pm.Model() as model:
 
     path = lcm.Ornstein_Uhlenbeck('path', D=D, A=A, B=B, shape=mpfc.shape)
 
-    X_obs = pm.Normal('X_obs', mu=path, sd=sN, observed=mpfc)
+    X_obs = pm.Normal('X_obs', mu=path, sd=sN, observed=time_series)
 
     start = pm.find_MAP(fmin=sp.optimize.fmin_powell)
 
@@ -45,6 +47,11 @@ with pm.Model() as model:
 
 pm.summary(trace)
 
-pm.traceplot(trace)
+data_dict={ 'D':trace['D'],
+            'A':trace['A'],
+            'sN':trace['sN'],
+            'B',trace['B'],
+}
 
-plt.show()
+df=pd.DataFrame(data_dict)
+df.to_csv('LWN'+region+str(voxel), index=False)
