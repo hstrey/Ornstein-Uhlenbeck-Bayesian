@@ -34,8 +34,6 @@ delta_t=0.802
 with pm.Model() as model:
     D = pm.InverseGamma('D', alpha=alpha_D, beta=beta_D)
     A = pm.Gamma('A', alpha=alpha_A, beta=beta_A)
-    sN = pm.InverseGamma('sN', alpha=alpha_N, beta=beta_N)
-
     B = pm.Deterministic('B', pm.exp(-delta_t * D / A))
 
     path = lcm.Ornstein_Uhlenbeck('path', D=D, A=A, B=B, observed=time_series)
@@ -48,7 +46,6 @@ pm.summary(trace)
 
 data_dict={ 'D':trace['D'],
             'A':trace['A'],
-            'sN':trace['sN'],
             'B':trace['B'],
 }
 
