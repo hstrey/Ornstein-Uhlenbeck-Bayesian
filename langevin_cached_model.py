@@ -91,7 +91,7 @@ class Langevin(BayesianModel):
             D = pm.Gamma('D', mu=mu_D, sd=sd_D)
             A = pm.Gamma('A', mu=mu_A, sd=sd_A)
 
-            B = pm.Deterministic('B', pm.exp(-delta_t * D / A))
+            B = pm.Deterministic('B', pm.math.exp(-delta_t * D / A))
 
             path = Ornstein_Uhlenbeck('path',D=D, A=A, B=B, observed=x)
         return model
@@ -107,7 +107,7 @@ class LangevinIG(BayesianModel):
             D = pm.InverseGamma('D', alpha=aD, beta=bD)
             A = pm.Gamma('A', alpha=aA, beta=bA)
 
-            B = pm.Deterministic('B', pm.exp(-delta_t * D / A))
+            B = pm.Deterministic('B', pm.math.exp(-delta_t * D / A))
 
             path = Ornstein_Uhlenbeck('path',D=D, A=A, B=B, observed=x)
         return model
@@ -124,7 +124,7 @@ class LangevinPlusNoiseIG(BayesianModel):
             A = pm.Gamma('A', alpha=aA, beta=bA)
             sN = pm.InverseGamma('sN', alpha=aN, beta=bN)
 
-            B = pm.Deterministic('B', pm.exp(-delta_t * D / A))
+            B = pm.Deterministic('B', pm.math.exp(-delta_t * D / A))
 
             path = Ornstein_Uhlenbeck('path',D=D, A=A, B=B, shape=(N,))
 
@@ -144,8 +144,8 @@ class LangevinIG2(BayesianModel):
             A1 = pm.Gamma('A1', alpha=aA1, beta=bA1)
             A2 = pm.Gamma('A2', alpha=aA2, beta=bA2)
 
-            B1 = pm.Deterministic('B1', pm.exp(-delta_t * D / A1))
-            B2 = pm.Deterministic('B2', pm.exp(-delta_t * D / A2))
+            B1 = pm.Deterministic('B1', pm.math.exp(-delta_t * D / A1))
+            B2 = pm.Deterministic('B2', pm.exp.math(-delta_t * D / A2))
 
             path1 = Ornstein_Uhlenbeck('path1',D=D, A=A1, B=B1, observed=x1)
             path2 = Ornstein_Uhlenbeck('path2', D=D, A=A2, B=B2, observed=x2)
