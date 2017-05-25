@@ -14,14 +14,15 @@ N=10000 # length of data set
 P=500 # range to fit acf
 
 # initial prior
-# both D and A have mean 1 and std 10
+# A have mean 1 and std 10
+# B is uniform prior over [0,1] interval
 alpha_A=2.1
 beta_A=1.1
-alpha_D=0.1
-beta_D=0.1
+alpha_B=1
+beta_B=1
 
 # compile model for reuse
-sm = lcm.OU_DA()
+sm = lcm.OU_BA()
 sm.samples=100000
 
 result_array = None
@@ -29,6 +30,9 @@ result_array = None
 for i in range(M):
     print("***** Iteration ",i," *****")
     data = langevin.time_series(A=A, D=D, delta_t=delta_t, N=N)
+
+    data_results = [data[0]**2, data[-1]**2, np.sum(data[1:-2]**2), np.sum(data[:-1]*data[1:])]
+
     # calculate autocorrelation function
     f = np.fft.rfft(data)
     acf = np.fft.irfft(f * np.conjugate(f))
@@ -53,8 +57,8 @@ for i in range(M):
         print(out.fit_report(min_correl=0.25))
 
     trace = sm.run(x=data,
-                    aD=alpha_D,
-                    bD=beta_D,
+                    aB=alpha_B,
+                    bB=beta_B,
                     aA=alpha_A,
                     bA=beta_A,
                     delta_t=delta_t,
@@ -62,13 +66,13 @@ for i in range(M):
 
     pm.summary(trace)
 
-    traceD_results = np.percentile(trace['D'],(2.5,25,50,75,97.5))
-    traceD_results = np.concatenate((traceD_results, [np.std(trace['D'])], [np.mean(trace['D'])]))
+    traceB_results = np.percentile(trace['B'],(2.5,25,50,75,97.5))
+    traceB_results = np.concatenate((traceB_results, [np.std(trace['B'])], [np.mean(trace['B'])]))
 
     traceA_results=np.percentile(trace['A'],(2.5,25,50,75,97.5))
     traceA_results = np.concatenate((traceA_results, [np.std(trace['A'])], [np.mean(trace['A'])]))
 
-    results = np.concatenate((fit_results, traceD_results, traceA_results))
+    results = np.concatenate((data_results, fit_results, traceB_results, traceA_results))
 
     print(results)
 
@@ -79,7 +83,11 @@ for i in range(M):
 
 print(np.mean(result_array, axis=0))
 
-columns = ['decay',
+columns = ['data1sq',
+           'dataNsq',
+           'datasq',
+           'datacorr',
+           'decay',
            'decay_std',
            'amplitude',
            'amplitude_std',
@@ -101,4 +109,4 @@ columns = ['decay',
 
 df = pd.DataFrame(data=result_array, columns=columns)
 
-df.to_csv('results/BM2_'+str(delta_t)+'_'+str(N)+'.csv',index=False)
+df.to_csv('results/BMBA_'+str(delta_t)+'_'+str(N)+'.csv',index=False)

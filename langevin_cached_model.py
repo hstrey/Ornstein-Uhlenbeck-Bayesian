@@ -5,7 +5,7 @@ import numpy as np
 import scipy as sp
 # theano.config.gcc.cxxflags = "-fbracket-depth=16000" # default is 256
 
-class Ornstein_Uhlenbeck(pm.Continuous):
+class Ornstein_UhlenbeckDA(pm.Continuous):
     """
     Ornstein-Uhlenbeck Process
     Parameters
@@ -36,6 +36,38 @@ class Ornstein_Uhlenbeck(pm.Continuous):
 
         ou_like = pm.Normal.dist(mu=x_im1*B, tau=1.0/A/(1-B**2)).logp(x_i)
         return pm.Normal.dist(mu=0.0,tau=1.0/A).logp(x[0]) + tt.sum(ou_like)
+
+
+class Ornstein_UhlenbeckBA(pm.Continuous):
+    """
+    Ornstein-Uhlenbeck Process
+    Parameters
+    ----------
+    B : tensor
+        1 > B > 0, exp(-D/A*delta_t)
+    A : tensor
+        A > 0, amplitude of fluctuation <x**2>=A
+    delta_t: scalar
+        delta_t > 0, time step
+    """
+
+    def __init__(self, A=None, B=None,
+                 *args, **kwargs):
+        super(Ornstein_Uhlenbeck, self).__init__(*args, **kwargs)
+        self.A = A
+        self.B = B
+        self.mean = 0.
+
+    def logp(self, x):
+        A = self.A
+        B = self.B
+
+        x_im1 = x[:-1]
+        x_i = x[1:]
+
+        ou_like = pm.Normal.dist(mu=x_im1 * B, tau=1.0 / A / (1 - B ** 2)).logp(x_i)
+        return pm.Normal.dist(mu=0.0, tau=1.0 / A).logp(x[0]) + tt.sum(ou_like)
+
 
 class BayesianModel(object):
     samples = 10000
@@ -80,38 +112,37 @@ class BayesianModel(object):
         return trace
 
 
-class Langevin(BayesianModel):
+class OU_DA(BayesianModel):
     """Bayesian model for a Ornstein-Uhlenback process.
     The model has inputs x, and prior parameters for
-    gamma distributions for D and A
-    """
-
-    def create_model(self, x=None, mu_D=None, sd_D=None, mu_A=None, sd_A=None, delta_t=None, N=None):
-        with pm.Model() as model:
-            D = pm.Gamma('D', mu=mu_D, sd=sd_D)
-            A = pm.Gamma('A', mu=mu_A, sd=sd_A)
-
-            B = pm.Deterministic('B', pm.math.exp(-delta_t * D / A))
-
-            path = Ornstein_Uhlenbeck('path',D=D, A=A, B=B, observed=x)
-        return model
-
-class LangevinIG(BayesianModel):
-    """Bayesian model for a Ornstein-Uhlenback process.
-    The model has inputs x, and prior parameters for
-    gamma distributions for D and A
+    gamma and inverse gamma distributions for D and A
     """
 
     def create_model(self, x=None, aD=None, bD=None, aA=None, bA=None, delta_t=None, N=None):
         with pm.Model() as model:
-            D = pm.InverseGamma('D', alpha=aD, beta=bD)
-            A = pm.Gamma('A', alpha=aA, beta=bA)
+            D = pm.Gamma('D', alpha=aD, beta=bD)
+            A = pm.InverseGamma('A', alpha=aA, beta=bA)
 
             B = pm.Deterministic('B', pm.math.exp(-delta_t * D / A))
 
-            path = Ornstein_Uhlenbeck('path',D=D, A=A, B=B, observed=x)
+            path = Ornstein_UhlenbeckDA('path',D=D, A=A, B=B, observed=x)
         return model
     
+
+class OU_BA(BayesianModel):
+    """Bayesian model for a Ornstein-Uhlenback process.
+    The model has inputs x, and prior parameters for
+    beta and inverse gamma distributions for B and A
+    """
+
+    def create_model(self, x=None, aB=None, bB=None, aA=None, bA=None, delta_t=None, N=None):
+        with pm.Model() as model:
+            B = pm.Beta('D', alpha=aB, beta=bB)
+            A = pm.InverseGamma('A', alpha=aA, beta=bA)
+
+            path = Ornstein_UhlenbeckBA('path',B=B, A=A, observed=x)
+        return model
+
 class LangevinPlusNoiseIG(BayesianModel):
     """Bayesian model for a Ornstein-Uhlenback process + noise.
     The model has inputs x, and prior parameters for
@@ -126,7 +157,7 @@ class LangevinPlusNoiseIG(BayesianModel):
 
             B = pm.Deterministic('B', pm.math.exp(-delta_t * D / A))
 
-            path = Ornstein_Uhlenbeck('path',D=D, A=A, B=B, shape=(N,))
+            path = Ornstein_UhlenbeckDA('path',D=D, A=A, B=B, shape=(N,))
 
             X_obs = pm.Normal('X_obs', mu=path, sd=sN, observed=x)
 
