@@ -137,7 +137,7 @@ class OU_BA(BayesianModel):
 
     def create_model(self, x=None, aB=None, bB=None, aA=None, bA=None, delta_t=None, N=None):
         with pm.Model() as model:
-            B = pm.Beta('D', alpha=aB, beta=bB)
+            B = pm.Beta('B', alpha=aB, beta=bB)
             A = pm.InverseGamma('A', alpha=aA, beta=bA)
 
             path = Ornstein_UhlenbeckBA('path',B=B, A=A, observed=x)
