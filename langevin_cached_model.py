@@ -20,7 +20,7 @@ class Ornstein_UhlenbeckDA(pm.Continuous):
 
     def __init__(self, D=None, A=None, B=None,
                  *args, **kwargs):
-        super(Ornstein_Uhlenbeck, self).__init__(*args, **kwargs)
+        super(Ornstein_UhlenbeckDA, self).__init__(*args, **kwargs)
         self.D = D
         self.A = A
         self.B = B
@@ -53,7 +53,7 @@ class Ornstein_UhlenbeckBA(pm.Continuous):
 
     def __init__(self, A=None, B=None,
                  *args, **kwargs):
-        super(Ornstein_Uhlenbeck, self).__init__(*args, **kwargs)
+        super(Ornstein_UhlenbeckBA, self).__init__(*args, **kwargs)
         self.A = A
         self.B = B
         self.mean = 0.
