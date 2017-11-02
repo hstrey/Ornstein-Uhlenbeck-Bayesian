@@ -41,6 +41,25 @@ def time_series(A,D,delta_t,N):
 
     return np.array(x)
 
+def time_series2(A,gamma,delta_t,N):
+    """ returns a time series that is the solution of a Langevin equation describing a Brownian particle in a harmonic potential
+    :param A: mean square amplitude - oscillator strength
+    :param D: Diffusion coefficient
+    :param delta_t: time step
+    :param N: number of samples that are returned
+    :return:
+    """
+    # using Smolukowski solution for simulation
+
+    #first point
+    x=[np.random.normal(0,np.sqrt(A))]
+    stddev = np.sqrt(A * (1.0 - np.exp(-2.0 * gamma * delta_t)))
+
+    for i in range(N-1):
+        x.append(np.random.normal(x[-1]*np.exp(-gamma*delta_t),stddev))
+
+    return np.array(x)
+
 # differential equation x_i = x_(i-1) - k/gamma*x_(i-1) + sqrt(2*D*delta_t)*w_i
 # using 4th-order Runge-Kutta
 def next_point_RK4(x,y):
