@@ -44,7 +44,7 @@ def time_series(A,D,delta_t,N):
 def time_series2(A,gamma,delta_t,N):
     """ returns a time series that is the solution of a Langevin equation describing a Brownian particle in a harmonic potential
     :param A: mean square amplitude - oscillator strength
-    :param D: Diffusion coefficient
+    :param gamma: friction coefficient
     :param delta_t: time step
     :param N: number of samples that are returned
     :return:

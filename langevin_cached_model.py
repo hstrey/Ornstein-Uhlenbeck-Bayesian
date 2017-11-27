@@ -5,46 +5,13 @@ import numpy as np
 import scipy as sp
 # theano.config.gcc.cxxflags = "-fbracket-depth=16000" # default is 256
 
-class Ornstein_UhlenbeckDA(pm.Continuous):
-    """
-    Ornstein-Uhlenbeck Process
-    Parameters
-    ----------
-    D : tensor
-        D > 0, diffusion coefficient
-    A : tensor
-        A > 0, amplitude of fluctuation <x**2>=A
-    delta_t: scalar
-        delta_t > 0, time step
-    """
-
-    def __init__(self, D=None, A=None, B=None,
-                 *args, **kwargs):
-        super(Ornstein_UhlenbeckDA, self).__init__(*args, **kwargs)
-        self.D = D
-        self.A = A
-        self.B = B
-        self.mean = 0.
-
-    def logp(self, x):
-        D = self.D
-        A = self.A
-        B = self.B
-
-        x_im1 = x[:-1]
-        x_i = x[1:]
-
-        ou_like = pm.Normal.dist(mu=x_im1*B, tau=1.0/A/(1-B**2)).logp(x_i)
-        return pm.Normal.dist(mu=0.0,tau=1.0/A).logp(x[0]) + tt.sum(ou_like)
-
-
-class Ornstein_UhlenbeckBA(pm.Continuous):
+class Ornstein_Uhlenbeck(pm.Continuous):
     """
     Ornstein-Uhlenbeck Process
     Parameters
     ----------
     B : tensor
-        1 > B > 0, exp(-D/A*delta_t)
+        B > 0, B = exp(-(D/A)*delta_t)
     A : tensor
         A > 0, amplitude of fluctuation <x**2>=A
     delta_t: scalar
@@ -53,7 +20,7 @@ class Ornstein_UhlenbeckBA(pm.Continuous):
 
     def __init__(self, A=None, B=None,
                  *args, **kwargs):
-        super(Ornstein_UhlenbeckBA, self).__init__(*args, **kwargs)
+        super(Ornstein_Uhlenbeck, self).__init__(*args, **kwargs)
         self.A = A
         self.B = B
         self.mean = 0.
@@ -65,9 +32,8 @@ class Ornstein_UhlenbeckBA(pm.Continuous):
         x_im1 = x[:-1]
         x_i = x[1:]
 
-        ou_like = pm.Normal.dist(mu=x_im1 * B, tau=1.0 / A / (1 - B ** 2)).logp(x_i)
-        return pm.Normal.dist(mu=0.0, tau=1.0 / A).logp(x[0]) + tt.sum(ou_like)
-
+        ou_like = pm.Normal.dist(mu=x_im1*B, tau=1.0/A/(1-B**2)).logp(x_i)
+        return pm.Normal.dist(mu=0.0,tau=1.0/A).logp(x[0]) + tt.sum(ou_like)
 
 class BayesianModel(object):
     samples = 10000
@@ -125,7 +91,7 @@ class OU_DA(BayesianModel):
 
             B = pm.Deterministic('B', pm.math.exp(-delta_t * D / A))
 
-            path = Ornstein_UhlenbeckDA('path',D=D, A=A, B=B, observed=x)
+            path = Ornstein_Uhlenbeck('path',A=A, B=B, observed=x)
         return model
     
 
@@ -140,7 +106,7 @@ class OU_BA(BayesianModel):
             B = pm.Beta('B', alpha=aB, beta=bB)
             A = pm.InverseGamma('A', alpha=aA, beta=bA)
 
-            path = Ornstein_UhlenbeckBA('path',B=B, A=A, observed=x)
+            path = Ornstein_Uhlenbeck('path',B=B, A=A, observed=x)
         return model
 
 class LangevinPlusNoiseIG(BayesianModel):
@@ -157,7 +123,7 @@ class LangevinPlusNoiseIG(BayesianModel):
 
             B = pm.Deterministic('B', pm.math.exp(-delta_t * D / A))
 
-            path = Ornstein_UhlenbeckDA('path',D=D, A=A, B=B, shape=(N,))
+            path = Ornstein_Uhlenbeck('path',A=A, B=B, shape=(N,))
 
             X_obs = pm.Normal('X_obs', mu=path, sd=sN, observed=x)
 
@@ -178,6 +144,6 @@ class LangevinIG2(BayesianModel):
             B1 = pm.Deterministic('B1', pm.math.exp(-delta_t * D / A1))
             B2 = pm.Deterministic('B2', pm.exp.math(-delta_t * D / A2))
 
-            path1 = Ornstein_Uhlenbeck('path1',D=D, A=A1, B=B1, observed=x1)
-            path2 = Ornstein_Uhlenbeck('path2', D=D, A=A2, B=B2, observed=x2)
+            path1 = Ornstein_Uhlenbeck('path1',A=A1, B=B1, observed=x1)
+            path2 = Ornstein_Uhlenbeck('path2', A=A2, B=B2, observed=x2)
         return model
