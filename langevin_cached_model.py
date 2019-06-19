@@ -69,11 +69,7 @@ class BayesianModel(object):
 
     def _inference(self, reinit=True):
         with self.cached_model:
-            if reinit or (self.cached_start is None) or (self.cached_sampler is None):
-                self.cached_start = pm.find_MAP(fmin=sp.optimize.fmin_powell)
-                self.cached_sampler = pm.NUTS(scaling=self.cached_start)
-
-            trace = pm.sample(self.samples, self.cached_sampler, start=self.cached_start)
+            trace = pm.sample(self.samples)
 
         return trace
 
@@ -81,13 +77,13 @@ class BayesianModel(object):
 class OU_DA(BayesianModel):
     """Bayesian model for a Ornstein-Uhlenback process.
     The model has inputs x, and prior parameters for
-    gamma and inverse gamma distributions for D and A
+    uniform distributions for D and A
     """
 
-    def create_model(self, x=None, aD=None, bD=None, aA=None, bA=None, delta_t=None, N=None):
+    def create_model(self, x=None, d_bound=None, a_bound=None, delta_t=None, N=None):
         with pm.Model() as model:
-            D = pm.Gamma('D', alpha=aD, beta=bD)
-            A = pm.InverseGamma('A', alpha=aA, beta=bA)
+            D = pm.Uniform('D', lower=0, upper=d_bound)
+            A = pm.Uniform('A', lower=0, upper=a_bound)
 
             B = pm.Deterministic('B', pm.math.exp(-delta_t * D / A))
 
@@ -98,13 +94,13 @@ class OU_DA(BayesianModel):
 class OU_BA(BayesianModel):
     """Bayesian model for a Ornstein-Uhlenback process.
     The model has inputs x, and prior parameters for
-    beta and inverse gamma distributions for B and A
+    uniform distributions for B and A
     """
 
-    def create_model(self, x=None, aB=None, bB=None, aA=None, bA=None, delta_t=None, N=None):
+    def create_model(self, x=None, b_bound=None, a_bound=None, delta_t=None, N=None):
         with pm.Model() as model:
-            B = pm.Beta('B', alpha=aB, beta=bB)
-            A = pm.InverseGamma('A', alpha=aA, beta=bA)
+            B = pm.Uniform('B', lower=0, upper=b_bound)
+            A = pm.Uniform('A', lower=0, upper=a_bound)
 
             path = Ornstein_Uhlenbeck('path',B=B, A=A, observed=x)
         return model
