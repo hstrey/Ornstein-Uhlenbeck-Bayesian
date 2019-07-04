@@ -37,6 +37,7 @@ class Ornstein_Uhlenbeck(pm.Continuous):
 
 class BayesianModel(object):
     samples = 10000
+    target_accept = 0.8
 
     def __init__(self, cache_model=True):
         self.cached_model = None
@@ -69,7 +70,7 @@ class BayesianModel(object):
 
     def _inference(self, reinit=True):
         with self.cached_model:
-            trace = pm.sample(self.samples)
+            trace = pm.sample(samples=self.samples,target_accept=self.target_accept)
 
         return trace
 
